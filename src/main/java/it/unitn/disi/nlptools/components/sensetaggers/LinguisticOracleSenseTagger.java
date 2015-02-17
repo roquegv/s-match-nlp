@@ -24,13 +24,13 @@ public class LinguisticOracleSenseTagger extends LabelPipelineComponent {
     }
 
     public void process(ILabel instance) throws PipelineComponentException {
-        tagSenses(instance.getTokens());
+        tagSenses(instance.getTokens(), instance.getLanguage());
     }
 
-    private void tagSenses(List<? extends IToken> tokens) throws PipelineComponentException {
+    private void tagSenses(List<? extends IToken> tokens, String language) throws PipelineComponentException {
         for (IToken token : tokens) {
             try {
-                List<ISense> senses = oracle.getSenses(token.getText());
+                List<ISense> senses = oracle.getSenses(token.getText(), language);
                 if (0 < senses.size()) {//to save memory with default empty lists already there
                     token.setSenses(senses);
                 }

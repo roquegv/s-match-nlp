@@ -23,5 +23,4 @@ public abstract class TextSpan {
     public void setText(String text) {
         this.text = text;
     }
-
 }

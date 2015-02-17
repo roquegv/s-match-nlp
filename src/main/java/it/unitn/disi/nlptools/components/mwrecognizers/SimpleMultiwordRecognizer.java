@@ -42,9 +42,9 @@ public class SimpleMultiwordRecognizer extends LabelPipelineComponent {
     public void process(ILabel instance) throws PipelineComponentException {
         for (int i = 0; i < instance.getTokens().size(); i++) {
             IToken token = instance.getTokens().get(i);
-            List<List<String>> entries;
+            ArrayList<ArrayList<String>> entries;
             try {
-                entries = oracle.getMultiwords(token.getLemma().toLowerCase());
+                entries = oracle.getMultiwords(token.getLemma().toLowerCase(), instance.getLanguage());
             } catch (LinguisticOracleException e) {
                 throw new PipelineComponentException(e.getMessage(), e);
             }

@@ -28,4 +28,8 @@ public interface ILabel extends ITextSpan {
     String getFormula();
 
     void setFormula(String formula);
+
+    String getLanguage();
+
+    void setLanguage(String language);
 }

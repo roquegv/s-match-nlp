@@ -9,6 +9,7 @@ import it.unitn.disi.smatch.async.AsyncTask;
 import it.unitn.disi.smatch.data.ling.IAtomicConceptOfLabel;
 import it.unitn.disi.smatch.data.trees.IContext;
 import it.unitn.disi.smatch.data.trees.INode;
+import it.unitn.disi.smatch.oracles.ILinguisticOracle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,26 +30,26 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
 
     private int fallbackCount;
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline) {
-        super(null);
+    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, ILinguisticOracle linguisticOracle) {
+        super(linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = null;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, IContext context) {
-        super(context);
+    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, IContext context, ILinguisticOracle linguisticOracle) {
+        super(context, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = null;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp) {
-        super(null);
+    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp, ILinguisticOracle linguisticOracle) {
+        super(null, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = dcp;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp, IContext context) {
-        super(context);
+    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp, IContext context, ILinguisticOracle linguisticOracle) {
+        super(context, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = dcp;
     }
@@ -80,6 +81,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
                 pathToRootPhrases.remove(pathToRootPhrases.size() - 1);
             } else {
                 ILabel currentPhrase;
+                currentNode.setLanguage(context.getLanguage());
                 currentPhrase = processNode(currentNode, pathToRootPhrases);
 
                 progress();
@@ -107,7 +109,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
 
     @Override
     public AsyncTask<Void, INode> asyncPreprocess(IContext context) {
-        return new NLPToolsContextPreprocessor(pipeline, dcp, context);
+        return new NLPToolsContextPreprocessor(pipeline, dcp, context, linguisticOracle);
     }
 
     /**
@@ -130,6 +132,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
         ILabel result = new Label(label);
         result.setContext(pathToRootPhrases);
         try {
+            result.setLanguage(context.getLanguage());
             pipeline.process(result);
 
             //should contain only token indexes. including not recognized, but except closed class tokens.

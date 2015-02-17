@@ -23,7 +23,7 @@ public class LinguisticOracleLemmatizer extends LabelPipelineComponent {
     public void process(ILabel instance) throws PipelineComponentException {
         for (IToken token : instance.getTokens()) {
             try {
-                List<String> lemmas = oracle.getBaseForms(token.getText());
+                List<String> lemmas = oracle.getBaseForms(token.getText(), instance.getLanguage());
                 if (0 < lemmas.size()) {
                     token.setLemma(lemmas.get(0));//lemma is supposed to be that of an "active" sense
                 }

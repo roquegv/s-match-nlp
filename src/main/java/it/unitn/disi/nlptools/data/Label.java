@@ -14,6 +14,7 @@ public class Label extends TextSpan implements ILabel {
     protected List<IToken> tokens = Collections.emptyList();
     protected List<IMultiWord> multiWords = Collections.emptyList();
     protected String formula;
+    protected String language;
 
     public Label() {
         super();
@@ -58,5 +59,13 @@ public class Label extends TextSpan implements ILabel {
     @Override
     public String toString() {
         return text;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }
