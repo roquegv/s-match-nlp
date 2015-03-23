@@ -58,6 +58,11 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
         //go DFS, processing label-by-label, keeping path-to-root as context
         //process each text getting the formula
         fallbackCount = 0;
+        // TODO: this is probably not the best place for the language detection
+        // code, should maybe create a processing component for it
+        String language = linguisticOracle.detectLanguage(context);
+        linguisticOracle.readMultiwords(language);
+        context.setLanguage(language);
         try {
             pipeline.beforeProcessing();
         } catch (PipelineComponentException e) {
@@ -132,7 +137,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
         ILabel result = new Label(label);
         result.setContext(pathToRootPhrases);
         try {
-            result.setLanguage(context.getLanguage());
+            result.setLanguage(currentNode.getLanguage());
             pipeline.process(result);
 
             //should contain only token indexes. including not recognized, but except closed class tokens.
