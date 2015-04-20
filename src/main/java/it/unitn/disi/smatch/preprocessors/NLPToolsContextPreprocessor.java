@@ -166,7 +166,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
             }
 
             //prepend all token references with node id
-            formula = formula.replaceAll("(\\d+)", currentNode.nodeData().getId() + ".$1");
+            formula = formula.replaceAll("(\\d+)", currentNode.nodeData().getId() + "_$1");
             formula = formula.trim();
             //set it to the node
             currentNode.nodeData().setLabelFormula(formula);
