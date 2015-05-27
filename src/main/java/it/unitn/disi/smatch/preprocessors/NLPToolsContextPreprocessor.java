@@ -3,15 +3,29 @@ package it.unitn.disi.smatch.preprocessors;
 import it.unitn.disi.nlptools.ILabelPipeline;
 import it.unitn.disi.nlptools.components.PipelineComponentException;
 import it.unitn.disi.nlptools.data.ILabel;
+import it.unitn.disi.nlptools.data.IMultiWord;
 import it.unitn.disi.nlptools.data.IToken;
 import it.unitn.disi.nlptools.data.Label;
+import it.unitn.disi.nlptools.data.MultiWord;
+import it.unitn.disi.nlptools.data.Token;
 import it.unitn.disi.smatch.async.AsyncTask;
 import it.unitn.disi.smatch.data.ling.IAtomicConceptOfLabel;
 import it.unitn.disi.smatch.data.trees.IContext;
 import it.unitn.disi.smatch.data.trees.INode;
 import it.unitn.disi.smatch.oracles.ILinguisticOracle;
+import it.unitn.disi.sweb.core.nlp.IOpenPipeline;
+import it.unitn.disi.sweb.core.nlp.model.NLMultiWord;
+import it.unitn.disi.sweb.core.nlp.model.NLSentence;
+import it.unitn.disi.sweb.core.nlp.model.NLText;
+import it.unitn.disi.sweb.core.nlp.model.NLToken;
+import it.unitn.disi.sweb.core.nlp.parameters.NLPParameters;
+import it.unitn.disi.sweb.core.nlp.pipelines.SemanticMatchingPipeline;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.*;
 
@@ -25,30 +39,49 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
 
     private static final Logger log = LoggerFactory.getLogger(NLPToolsContextPreprocessor.class);
 
-    private final ILabelPipeline pipeline;
+//    private final ILabelPipeline pipeline;
+    @Autowired
+    @Qualifier("NLPParameters")
+    private NLPParameters parameters;
+
+    @Autowired
+    @Qualifier("SemanticMatchingPipeline")
+    private IOpenPipeline<NLPParameters> pipeline;
+    
     private final DefaultContextPreprocessor dcp;
 
     private int fallbackCount;
+    
+//    private static ClassPathXmlApplicationContext ctx;
+//    static{//is this the right place?
+//    	ctx = new ClassPathXmlApplicationContext("classpath:/META-INF/smatch-context.xml");
+//        pipeline = ctx.getBean(NLPToolsContextPreprocessor.class);
+//    }
+    
+    public NLPToolsContextPreprocessor(ILinguisticOracle linguisticOracle) {
+        super(linguisticOracle);
+        this.dcp = null;
+    }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, ILinguisticOracle linguisticOracle) {
+    public NLPToolsContextPreprocessor(IOpenPipeline<NLPParameters> pipeline, ILinguisticOracle linguisticOracle) {
         super(linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = null;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, IContext context, ILinguisticOracle linguisticOracle) {
+    public NLPToolsContextPreprocessor(IOpenPipeline<NLPParameters> pipeline, IContext context, ILinguisticOracle linguisticOracle) {
         super(context, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = null;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp, ILinguisticOracle linguisticOracle) {
+    public NLPToolsContextPreprocessor(IOpenPipeline<NLPParameters> pipeline, DefaultContextPreprocessor dcp, ILinguisticOracle linguisticOracle) {
         super(null, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = dcp;
     }
 
-    public NLPToolsContextPreprocessor(ILabelPipeline pipeline, DefaultContextPreprocessor dcp, IContext context, ILinguisticOracle linguisticOracle) {
+    public NLPToolsContextPreprocessor(IOpenPipeline<NLPParameters> pipeline, DefaultContextPreprocessor dcp, IContext context, ILinguisticOracle linguisticOracle) {
         super(context, linguisticOracle);
         this.pipeline = pipeline;
         this.dcp = dcp;
@@ -63,11 +96,11 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
         String language = linguisticOracle.detectLanguage(context);
         linguisticOracle.readMultiwords(language);
         context.setLanguage(language);
-        try {
-            pipeline.beforeProcessing();
-        } catch (PipelineComponentException e) {
-            throw new ContextPreprocessorException(e.getMessage(), e);
-        }
+//        try {
+//            pipeline.beforeProcessing();
+//        } catch (PipelineComponentException e) {
+//            throw new ContextPreprocessorException(e.getMessage(), e);
+//        }
 
         List<INode> queue = new ArrayList<>();
         List<INode> pathToRoot = new ArrayList<>();
@@ -104,11 +137,11 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
             }
         }
 
-        try {
-            pipeline.afterProcessing();
-        } catch (PipelineComponentException e) {
-            throw new ContextPreprocessorException(e.getMessage(), e);
-        }
+//        try {
+//            pipeline.afterProcessing();
+//        } catch (PipelineComponentException e) {
+//            throw new ContextPreprocessorException(e.getMessage(), e);
+//        }
         log.info("Processed nodes: " + getProgress() + ", fallbacks: " + fallbackCount);
     }
 
@@ -135,10 +168,22 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
 
         String label = currentNode.nodeData().getName();
         ILabel result = new Label(label);
-        result.setContext(pathToRootPhrases);
+//        result.setContext(pathToRootPhrases);
+        
+        //Convert ILabel to NLText
+        NLText resultLabel = new NLText(label,currentNode.getLanguage());
+        resultLabel.addSentence(new NLSentence(label));
+        List<NLSentence> context = new ArrayList<NLSentence>();
+        for (ILabel phrase: pathToRootPhrases){
+        	context.add(new NLSentence(phrase.getText()));
+        }
+        parameters.setContext(context);
         try {
-            result.setLanguage(currentNode.getLanguage());
-            pipeline.process(result);
+//            result.setLanguage(currentNode.getLanguage());
+//            pipeline.process(result);
+        	pipeline.runPipeline(resultLabel, parameters);
+        	//Convert NLText to Label
+        	result = nlTextToLabel(resultLabel,pathToRootPhrases);
 
             //should contain only token indexes. including not recognized, but except closed class tokens.
             //something like
@@ -170,7 +215,7 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
             formula = formula.trim();
             //set it to the node
             currentNode.nodeData().setLabelFormula(formula);
-        } catch (PipelineComponentException e) {
+        } catch (Exception e) {//TODO what kind of exception could throw SCROLL pipeline?  
             if (log.isWarnEnabled()) {
                 log.warn("Falling back to heuristic parser for label (" + result.getText() + "): " + e.getMessage(), e);
                 fallbackCount++;
@@ -179,4 +224,32 @@ public class NLPToolsContextPreprocessor extends BaseContextPreprocessor impleme
         }
         return result;
     }
+    
+    private static ILabel nlTextToLabel(NLText text,List<ILabel> context){
+    	ILabel converted = new Label(text.getText());
+    	//set context
+    	converted.setContext(context);
+    	//set tokens
+    	List<IToken> tokens = new ArrayList<IToken>();
+    	for (NLSentence sent: text.getSentences()){//there is only one sentence per label
+    		for (NLToken token: sent.getTokens()){
+    			tokens.add(new Token(token.getText()));
+    		}
+    	}
+    	converted.setTokens(tokens);
+    	//set multiwords
+    	List<IMultiWord> multiWords = new ArrayList<IMultiWord>();
+    	for (NLSentence sent: text.getSentences()){//there is only one sentence per label
+    		for (NLMultiWord multiWord: sent.getMultiWords()){
+    			multiWords.add(new MultiWord(multiWord.getText()));
+    		}
+    	}
+    	converted.setMultiWords(multiWords);
+    	//set formula
+    	converted.setFormula("0");//TODO this is not yet implemented in SCROLL
+    	//set language
+    	converted.setLanguage(text.getLanguage());
+    	return converted;
+    }
+    
 }
