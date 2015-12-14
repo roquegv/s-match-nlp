@@ -26,6 +26,14 @@
     </issueManagement>
 
     <dependencies>
+    	<!-- include the scroll-core to use the pipeline -->
+    	<!-- ROQUE: changed to 3.0.1-SNAPSHOT from 3.0.0-SNAPSHOT-->
+    	<dependency>
+            <groupId>it.unitn.disi.sweb</groupId>
+            <artifactId>scroll-core</artifactId>
+            <version>3.0.1-SNAPSHOT</version>
+        </dependency>
+        
         <dependency>
             <groupId>it.unitn.disi</groupId>
             <artifactId>s-match-core</artifactId>
