@@ -2,6 +2,7 @@ package it.unitn.disi.smatch.preprocessors;
 
 import it.unitn.disi.nlptools.ILabelPipeline;
 import it.unitn.disi.nlptools.components.PipelineComponentException;
+import it.unitn.disi.nlptools.components.formulabuilders.GeneralFormulaBuilder;
 import it.unitn.disi.nlptools.data.ILabel;
 import it.unitn.disi.nlptools.data.IMultiWord;
 import it.unitn.disi.nlptools.data.IToken;
@@ -14,7 +15,9 @@ import it.unitn.disi.smatch.data.trees.IContext;
 import it.unitn.disi.smatch.data.trees.INode;
 import it.unitn.disi.smatch.oracles.ILinguisticOracle;
 import it.unitn.disi.sweb.core.nlp.ISCROLLPipeline;
+import it.unitn.disi.sweb.core.nlp.components.parser.SyntacticParser;
 import it.unitn.disi.sweb.core.nlp.model.NLMultiWord;
+import it.unitn.disi.sweb.core.nlp.model.NLParseTree;
 import it.unitn.disi.sweb.core.nlp.model.NLSentence;
 import it.unitn.disi.sweb.core.nlp.model.NLText;
 import it.unitn.disi.sweb.core.nlp.model.NLToken;
@@ -184,6 +187,10 @@ public class SCROLLContextPreprocessor extends BaseContextPreprocessor implement
         	pipeline.runPipeline(resultLabel, parameters);
         	//Convert NLText to Label
         	result = nlTextToLabel(resultLabel,pathToRootPhrases);
+        	
+        	//TODO:this is not a good place
+        	GeneralFormulaBuilder gfb = new GeneralFormulaBuilder();
+        	gfb.process(result);
 
             //should contain only token indexes. including not recognized, but except closed class tokens.
             //something like
@@ -250,8 +257,10 @@ public class SCROLLContextPreprocessor extends BaseContextPreprocessor implement
     		}
     	}
     	converted.setMultiWords(multiWords);
-    	//set formula
-    	converted.setFormula("0");//TODO this is not yet implemented in SCROLL
+    	//set sentence's Parse tree
+    	for (NLSentence sent: text.getSentences()){
+    		converted.setParseTree((NLParseTree) sent.getProp(SyntacticParser.SYNTACTIC_TREE));
+    	}
     	//set language
     	converted.setLanguage(text.getLanguage());
     	return converted;

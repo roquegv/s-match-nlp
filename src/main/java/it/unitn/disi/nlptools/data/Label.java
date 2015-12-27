@@ -3,6 +3,8 @@ package it.unitn.disi.nlptools.data;
 import java.util.Collections;
 import java.util.List;
 
+import it.unitn.disi.sweb.core.nlp.model.NLParseTree;
+
 /**
  * Default implementation of short label.
  *
@@ -15,6 +17,8 @@ public class Label extends TextSpan implements ILabel {
     protected List<IMultiWord> multiWords = Collections.emptyList();
     protected String formula;
     protected String language;
+    
+    protected NLParseTree parseTree;
 
     public Label() {
         super();
@@ -68,4 +72,12 @@ public class Label extends TextSpan implements ILabel {
     public void setLanguage(String language) {
         this.language = language;
     }
+
+	public NLParseTree getParseTree() {
+		return parseTree;
+	}
+
+	public void setParseTree(NLParseTree parseTree) {
+		this.parseTree = parseTree;
+	}
 }

@@ -2,6 +2,8 @@ package it.unitn.disi.nlptools.data;
 
 import java.util.List;
 
+import it.unitn.disi.sweb.core.nlp.model.NLParseTree;
+
 /**
  * An interface for a short labels.
  *
@@ -32,4 +34,8 @@ public interface ILabel extends ITextSpan {
     String getLanguage();
 
     void setLanguage(String language);
+    
+	public NLParseTree getParseTree();
+
+	public void setParseTree(NLParseTree parseTree);
 }
