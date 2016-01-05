@@ -19,7 +19,7 @@ public class GeneralFormulaBuilder extends LabelPipelineComponent implements ILa
 	}
 	
 	public String buildFormula(NLParseTree tree){
-		if (tree.getToken() != null){
+		if (tree.isLeaf()){
 			return getConnector(tree);
 		}else{
 			StringBuilder formula = new StringBuilder();
@@ -33,7 +33,6 @@ public class GeneralFormulaBuilder extends LabelPipelineComponent implements ILa
 	}
 	
 	public static void join(StringBuilder fullformula, String subformula){
-		System.out.println("SUB:_"+subformula+"_");
 		if (subformula == null || subformula.isEmpty())
 			return;
 		if (LCDetector.CONJUNCTION_SYMBOL.equals(subformula)||
@@ -72,13 +71,14 @@ public class GeneralFormulaBuilder extends LabelPipelineComponent implements ILa
 	
 	public static String getConnector(NLParseTree tree){
 		NLToken token = tree.getToken();
+		if (token == null) return "";
 		if ("OTHER".equals(token.getPos())){
 			if (token.getProp(LCDetector.NAMESPACE, LCDetector.ATTR) == null)
 				return "";
 			else
 				return (String) token.getProp(LCDetector.NAMESPACE, LCDetector.ATTR);
 		}else{
-			return Integer.toString(tree.getTokenIndex());
+			return Integer.toString(tree.getFirstTokenPosition());
 		}
 	}
 	
@@ -99,7 +99,7 @@ public class GeneralFormulaBuilder extends LabelPipelineComponent implements ILa
 			sentence.addToken(token);
 		}
 		
-		NLParseTree parseTree = new NLParseTree(Parse.parseParse(tree),sentence);
+		NLParseTree parseTree = NLParseTree.deserializeTree(tree, sentence);
 		GeneralFormulaBuilder gfb = new GeneralFormulaBuilder();
 //		StringBuilder formula = new StringBuilder("");
 		String formula;
